@@ -9,36 +9,50 @@
 <body>
 
 <header>
-    <h1>🏆 Torneo del Barrio</h1>
-    <p>Sistema de gestión de partidos</p>
+    <div class="header-contenido">
+        <div>
+            <h1>🏆 Torneo del Barrio</h1>
+            <p>Sistema de gestión de partidos</p>
+        </div>
+        <div id="zona-admin">
+            <button class="btn-login" onclick="abrirLogin()" id="btn-entrar">🔐 Admin</button>
+            <button class="btn-logout" onclick="cerrarSesion()" id="btn-salir" style="display:none">🚪 Salir</button>
+            <span id="label-admin" style="display:none;color:#00ff88;font-size:0.85rem">✅ Modo Admin</span>
+        </div>
+    </div>
 </header>
 
 <main>
 
-    <!-- AGREGAR EQUIPO -->
-    <section class="seccion">
-        <h2>Agregar Equipo</h2>
-        <div class="formulario">
-            <input type="text" id="nombre-equipo" placeholder="Nombre del equipo">
-            <button onclick="crearEquipo()">Agregar</button>
-        </div>
-    </section>
+    <!-- PANEL ADMIN -->
+    <div id="panel-admin" style="display:none">
 
-    <!-- AGREGAR PARTIDO -->
-    <section class="seccion">
-        <h2>Agregar Partido</h2>
-        <div class="formulario">
-            <select id="ronda-partido">
-                <option value="Octavos">Octavos de Final</option>
-                <option value="Cuartos">Cuartos de Final</option>
-                <option value="Semifinal">Semifinal</option>
-                <option value="Final">Final</option>
-            </select>
-            <select id="equipo1-partido"></select>
-            <select id="equipo2-partido"></select>
-            <button onclick="crearPartido()">Agregar Partido</button>
-        </div>
-    </section>
+        <!-- AGREGAR EQUIPO -->
+        <section class="seccion">
+            <h2>Agregar Equipo</h2>
+            <div class="formulario">
+                <input type="text" id="nombre-equipo" placeholder="Nombre del equipo">
+                <button onclick="crearEquipo()">Agregar</button>
+            </div>
+        </section>
+
+        <!-- AGREGAR PARTIDO -->
+        <section class="seccion">
+            <h2>Agregar Partido</h2>
+            <div class="formulario">
+                <select id="ronda-partido">
+                    <option value="Octavos">Octavos de Final</option>
+                    <option value="Cuartos">Cuartos de Final</option>
+                    <option value="Semifinal">Semifinal</option>
+                    <option value="Final">Final</option>
+                </select>
+                <select id="equipo1-partido"></select>
+                <select id="equipo2-partido"></select>
+                <button onclick="crearPartido()">Agregar Partido</button>
+            </div>
+        </section>
+
+    </div>
 
     <!-- BRACKET -->
     <section class="seccion">
@@ -80,6 +94,20 @@
     </section>
 
 </main>
+
+<!-- MODAL LOGIN -->
+<div id="modal-login" class="modal" style="display:none">
+    <div class="modal-contenido">
+        <button class="cerrar" onclick="cerrarLogin()">✕</button>
+        <h2>🔐 Acceso Admin</h2>
+        <p style="color:#aaa;text-align:center;margin-bottom:1rem">Solo el administrador puede editar</p>
+        <div class="formulario" style="flex-direction:column;align-items:stretch">
+            <input type="password" id="input-password" placeholder="Contraseña">
+            <button onclick="iniciarSesion()">Entrar</button>
+        </div>
+        <p id="error-login" style="color:#ff4444;text-align:center;margin-top:0.5rem;display:none">Contraseña incorrecta</p>
+    </div>
+</div>
 
 <!-- MODAL RESULTADO -->
 <div id="modal-resultado" class="modal" style="display:none">

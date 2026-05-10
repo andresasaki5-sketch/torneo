@@ -1,9 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect
 from flask_cors import CORS
 import sqlite3
+import os
 
 app = Flask(__name__)
 CORS(app)
+app.secret_key = 'torneo_barrio_2026_secreto'
+
+ADMIN_PASSWORD = 'torneo2026'
 
 def conectar():
     return sqlite3.connect('torneo.db')
@@ -35,9 +39,29 @@ def iniciar_db():
 
 iniciar_db()
 
+def es_admin():
+    return session.get('admin') == True
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', admin=es_admin())
+
+@app.route('/login', methods=['POST'])
+def login():
+    datos = request.json
+    if datos.get('password') == ADMIN_PASSWORD:
+        session['admin'] = True
+        return jsonify({'ok': True})
+    return jsonify({'ok': False, 'mensaje': 'Contraseña incorrecta'})
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('admin', None)
+    return jsonify({'ok': True})
+
+@app.route('/api/admin')
+def check_admin():
+    return jsonify({'admin': es_admin()})
 
 @app.route('/api/equipos')
 def get_equipos():
@@ -55,6 +79,8 @@ def get_equipos():
 
 @app.route('/api/equipos', methods=['POST'])
 def crear_equipo():
+    if not es_admin():
+        return jsonify({'error': 'No autorizado'}), 403
     datos = request.json
     con = conectar()
     c = con.cursor()
@@ -65,6 +91,8 @@ def crear_equipo():
 
 @app.route('/api/equipos/<int:id>/goleador', methods=['PUT'])
 def actualizar_goleador(id):
+    if not es_admin():
+        return jsonify({'error': 'No autorizado'}), 403
     datos = request.json
     con = conectar()
     c = con.cursor()
@@ -98,6 +126,8 @@ def get_partidos():
 
 @app.route('/api/partidos', methods=['POST'])
 def crear_partido():
+    if not es_admin():
+        return jsonify({'error': 'No autorizado'}), 403
     datos = request.json
     con = conectar()
     c = con.cursor()
@@ -109,6 +139,8 @@ def crear_partido():
 
 @app.route('/api/partidos/<int:id>', methods=['DELETE'])
 def eliminar_partido(id):
+    if not es_admin():
+        return jsonify({'error': 'No autorizado'}), 403
     con = conectar()
     c = con.cursor()
     c.execute('SELECT equipo1_id, equipo2_id, goles1, goles2, estado FROM partidos WHERE id=?', (id,))
@@ -123,6 +155,8 @@ def eliminar_partido(id):
 
 @app.route('/api/partidos/<int:id>', methods=['PUT'])
 def actualizar_partido(id):
+    if not es_admin():
+        return jsonify({'error': 'No autorizado'}), 403
     datos = request.json
     con = conectar()
     c = con.cursor()

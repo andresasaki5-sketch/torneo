@@ -399,3 +399,44 @@ main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
 }
 
 .btn-eliminar:hover { background: #ff4444; color: #fff; }
+.header-contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.btn-login {
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    color: #f0a500;
+    border: 1px solid #f0a500;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.btn-login:hover { background: #f0a500; color: #1a1a2e; }
+
+.btn-logout {
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-logout:hover { background: #ff4444; color: #fff; }
+
+.admin-card { cursor: pointer; }
+
+.admin-hint {
+    font-size: 0.72rem;
+    color: #555;
+    margin-top: 0.3rem;
+}
+

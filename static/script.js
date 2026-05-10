@@ -1,11 +1,69 @@
 let partidoActual = null;
 let equipoActual = null;
 let golesAntesEmpate = { g1: 0, g2: 0 };
+let esAdmin = false;
 
 window.onload = function() {
+    verificarAdmin();
     cargarPartidos();
     cargarEquipos();
 };
+
+// ── ADMIN ──
+function verificarAdmin() {
+    fetch('/api/admin')
+    .then(r => r.json())
+    .then(data => {
+        esAdmin = data.admin;
+        actualizarUI();
+    });
+}
+
+function actualizarUI() {
+    document.getElementById('panel-admin').style.display = esAdmin ? 'block' : 'none';
+    document.getElementById('btn-entrar').style.display = esAdmin ? 'none' : 'block';
+    document.getElementById('btn-salir').style.display = esAdmin ? 'block' : 'none';
+    document.getElementById('label-admin').style.display = esAdmin ? 'inline' : 'none';
+    cargarPartidos();
+    cargarEquipos();
+}
+
+function abrirLogin() {
+    document.getElementById('modal-login').style.display = 'flex';
+    document.getElementById('input-password').value = '';
+    document.getElementById('error-login').style.display = 'none';
+}
+
+function cerrarLogin() {
+    document.getElementById('modal-login').style.display = 'none';
+}
+
+function iniciarSesion() {
+    const password = document.getElementById('input-password').value;
+    fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            esAdmin = true;
+            cerrarLogin();
+            actualizarUI();
+        } else {
+            document.getElementById('error-login').style.display = 'block';
+        }
+    });
+}
+
+function cerrarSesion() {
+    fetch('/logout', { method: 'POST' })
+    .then(() => {
+        esAdmin = false;
+        actualizarUI();
+    });
+}
 
 // ── EQUIPOS ──
 function cargarEquipos() {
@@ -14,12 +72,14 @@ function cargarEquipos() {
     .then(equipos => {
         const sel1 = document.getElementById('equipo1-partido');
         const sel2 = document.getElementById('equipo2-partido');
-        sel1.innerHTML = '';
-        sel2.innerHTML = '';
-        equipos.forEach(e => {
-            sel1.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
-            sel2.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
-        });
+        if (sel1 && sel2) {
+            sel1.innerHTML = '';
+            sel2.innerHTML = '';
+            equipos.forEach(e => {
+                sel1.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+                sel2.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+            });
+        }
         renderEquipos(equipos);
     });
 }
@@ -31,12 +91,16 @@ function renderEquipos(equipos) {
         const goleador = e.goleador_nombre
             ? `⚽ ${e.goleador_nombre} (${e.goleador_goles} goles)`
             : 'Sin goleador registrado';
+        const clickAdmin = esAdmin
+            ? `onclick="abrirGoleador(${e.id}, '${e.nombre}', '${e.goleador_nombre}', ${e.goleador_goles})"`
+            : '';
         div.innerHTML += `
-            <div class="equipo-card" onclick="abrirGoleador(${e.id}, '${e.nombre}', '${e.goleador_nombre}', ${e.goleador_goles})">
+            <div class="equipo-card ${esAdmin ? 'admin-card' : ''}" ${clickAdmin}>
                 <h3>${e.nombre}</h3>
                 <div class="goles">${e.goles_total}</div>
                 <div class="goles-label">goles totales</div>
                 <div class="goleador-info">${goleador}</div>
+                ${esAdmin ? '<div class="admin-hint">✏️ Clic para editar goleador</div>' : ''}
             </div>
         `;
     });
@@ -90,7 +154,6 @@ function cargarPartidos() {
             }
         });
 
-        // Campeón
         const finalPartidos = porRonda.final;
         const campeonDiv = document.getElementById('campeon');
         const campeonNombre = document.getElementById('campeon-nombre');
@@ -140,22 +203,23 @@ function crearTarjeta(p) {
         penalesTexto = `<div class="penales-info">Penales: ${p.penales1} - ${p.penales2}</div>`;
     }
 
-    const t1 = p.equipo1 || 'Por definir';
-    const t2 = p.equipo2 || 'Por definir';
+    const botonEditar = esAdmin
+        ? `<button class="btn-editar" onclick='abrirResultado(${JSON.stringify(p)})'>✏️ Editar</button>`
+        : '';
 
     div.innerHTML = `
         <div class="equipo ${ganador1 ? 'ganador' : ''}">
-            <span>${t1}</span>
+            <span>${p.equipo1 || 'Por definir'}</span>
             <span>${g1}</span>
         </div>
         <div class="separador"></div>
         <div class="equipo ${ganador2 ? 'ganador' : ''}">
-            <span>${t2}</span>
+            <span>${p.equipo2 || 'Por definir'}</span>
             <span>${g2}</span>
         </div>
         ${penalesTexto}
         <div class="estado-badge estado-${p.estado}">${estadoTexto}</div>
-        <button class="btn-editar" onclick='abrirResultado(${JSON.stringify(p)})'>✏️ Editar</button>
+        ${botonEditar}
     `;
     return div;
 }
@@ -192,7 +256,6 @@ function cerrarModalResultado() {
 function guardarEstado(estado) {
     const g1 = parseInt(document.getElementById('goles-e1').value) || 0;
     const g2 = parseInt(document.getElementById('goles-e2').value) || 0;
-
     if (estado === 'finalizado' && g1 === g2) {
         golesAntesEmpate = { g1, g2 };
         cerrarModalResultado();
@@ -221,7 +284,6 @@ function enviarResultado(estado, g1, g2, p1, p2) {
     });
 }
 
-// ── ELIMINAR PARTIDO ──
 function eliminarPartido() {
     if (!confirm('¿Seguro que deseas eliminar este partido?')) return;
     fetch(`/api/partidos/${partidoActual.id}`, { method: 'DELETE' })
