@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneo del Barrio</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+    <h1>🏆 Torneo del Barrio</h1>
+    <p>Sistema de gestión de partidos</p>
+</header>
+
+<main>
+
+    <!-- AGREGAR EQUIPO -->
+    <section class="seccion">
+        <h2>Agregar Equipo</h2>
+        <div class="formulario">
+            <input type="text" id="nombre-equipo" placeholder="Nombre del equipo">
+            <button onclick="crearEquipo()">Agregar</button>
+        </div>
+    </section>
+
+    <!-- AGREGAR PARTIDO -->
+    <section class="seccion">
+        <h2>Agregar Partido</h2>
+        <div class="formulario">
+            <select id="ronda-partido">
+                <option value="Octavos">Octavos de Final</option>
+                <option value="Cuartos">Cuartos de Final</option>
+                <option value="Semifinal">Semifinal</option>
+                <option value="Final">Final</option>
+            </select>
+            <select id="equipo1-partido"></select>
+            <select id="equipo2-partido"></select>
+            <button onclick="crearPartido()">Agregar Partido</button>
+        </div>
+    </section>
+
+    <!-- BRACKET -->
+    <section class="seccion">
+        <h2>Llaves del Torneo</h2>
+        <div class="bracket-scroll">
+            <div class="bracket" id="bracket">
+                <div class="bracket-ronda">
+                    <div class="bracket-titulo">Octavos de Final</div>
+                    <div class="bracket-partidos" id="octavos"></div>
+                </div>
+                <div class="bracket-conectores" id="conector-octavos"></div>
+                <div class="bracket-ronda">
+                    <div class="bracket-titulo">Cuartos de Final</div>
+                    <div class="bracket-partidos" id="cuartos"></div>
+                </div>
+                <div class="bracket-conectores" id="conector-cuartos"></div>
+                <div class="bracket-ronda">
+                    <div class="bracket-titulo">Semifinal</div>
+                    <div class="bracket-partidos" id="semifinal"></div>
+                </div>
+                <div class="bracket-conectores" id="conector-semifinal"></div>
+                <div class="bracket-ronda">
+                    <div class="bracket-titulo">Final</div>
+                    <div class="bracket-partidos" id="final"></div>
+                </div>
+                <div class="bracket-campeon" id="campeon" style="display:none">
+                    <div class="trofeo">🏆</div>
+                    <div class="campeon-nombre" id="campeon-nombre"></div>
+                    <div class="campeon-label">CAMPEÓN</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EQUIPOS Y GOLEADORES -->
+    <section class="seccion">
+        <h2>Equipos y Goleadores</h2>
+        <div id="lista-equipos" class="equipos-grid"></div>
+    </section>
+
+</main>
+
+<!-- MODAL RESULTADO -->
+<div id="modal-resultado" class="modal" style="display:none">
+    <div class="modal-contenido">
+        <button class="cerrar" onclick="cerrarModalResultado()">✕</button>
+        <h2 id="titulo-resultado">Resultado</h2>
+        <div class="marcador">
+            <div class="equipo-marcador">
+                <p id="nombre-e1">Equipo 1</p>
+                <input type="number" id="goles-e1" min="0" value="0">
+            </div>
+            <span class="vs">VS</span>
+            <div class="equipo-marcador">
+                <p id="nombre-e2">Equipo 2</p>
+                <input type="number" id="goles-e2" min="0" value="0">
+            </div>
+        </div>
+        <div class="btn-estados">
+            <button class="btn-estado pendiente" onclick="guardarEstado('pendiente')">⏳ Pendiente</button>
+            <button class="btn-estado en-curso" onclick="guardarEstado('en_curso')">🔴 En Curso</button>
+            <button class="btn-estado finalizado" onclick="guardarEstado('finalizado')">✅ Finalizar</button>
+        </div>
+        <div style="text-align:center;margin-top:1rem">
+            <button class="btn-eliminar" onclick="eliminarPartido()">🗑️ Eliminar Partido</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PENALES -->
+<div id="modal-penales" class="modal" style="display:none">
+    <div class="modal-contenido">
+        <h2>⚽ Definición por Penales</h2>
+        <p style="color:#aaa;margin-bottom:1rem;text-align:center">Hubo empate. Ingresa los penales:</p>
+        <div class="marcador">
+            <div class="equipo-marcador">
+                <p id="penal-nombre-e1">Equipo 1</p>
+                <input type="number" id="penales-e1" min="0" value="0">
+            </div>
+            <span class="vs">VS</span>
+            <div class="equipo-marcador">
+                <p id="penal-nombre-e2">Equipo 2</p>
+                <input type="number" id="penales-e2" min="0" value="0">
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:1rem">
+            <button class="btn-estado finalizado" onclick="confirmarPenales()">✅ Confirmar Ganador</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GOLEADOR -->
+<div id="modal-goleador" class="modal" style="display:none">
+    <div class="modal-contenido">
+        <button class="cerrar" onclick="cerrarModalGoleador()">✕</button>
+        <h2 id="titulo-goleador">Goleador</h2>
+        <p style="color:#aaa;margin-bottom:1rem">Registra el goleador principal del equipo:</p>
+        <div class="formulario" style="flex-direction:column">
+            <input type="text" id="nombre-goleador" placeholder="Nombre del goleador">
+            <input type="number" id="goles-goleador" placeholder="Goles anotados" min="0" value="0">
+            <button onclick="guardarGoleador()">Guardar Goleador</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
